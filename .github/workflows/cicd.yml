@@ -10,29 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout GitHub repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Step 3: Build and push frontend image
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+          tags: muskanparmar/frontend:latest
 
+      # Step 4: Build and push backend image
       - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
+          tags: muskanparmar/backend:latest
 
+      # Step 5: Copy deployment files to EC2
       - name: Copy compose and nginx config to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -42,6 +47,7 @@ jobs:
           source: "docker-compose.prod.yml,nginx/default.conf"
           target: "/home/ubuntu/app"
 
+      # Step 6: Deploy application on EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -49,10 +55,13 @@ jobs:
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.AWS_PRIVATE_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/app
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "muskanparmar" --password-stdin
+
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             docker compose -f docker-compose.prod.yml restart nginx
+
             docker image prune -f
