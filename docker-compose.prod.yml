@@ -1,10 +1,10 @@
 services:
   frontend:
-    image: ${DOCKER_USERNAME}/frontend:latest
+    image: $muskanparmar/frontend:latest
     restart: always
 
   backend:
-    image: ${DOCKER_USERNAME}/backend:latest
+    image: $muskanparmar/backend:latest
     restart: always
     environment:
       MONGO_URL: mongodb://mongodb:27017/studentdb
