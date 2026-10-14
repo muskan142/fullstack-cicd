@@ -233,7 +233,7 @@ function App() {
               <label>Full name</label>
               <input
                 name="name"
-                placeholder="e.g. Neel Patel"
+                placeholder="e.g. Student Name"
                 value={form.name}
                 onChange={handleChange}
                 required
